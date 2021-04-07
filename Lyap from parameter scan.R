@@ -5,16 +5,14 @@ library(tidyverse)
 Sys.setenv("plotly_username"="skoshyc")
 Sys.setenv("plotly_api_key"="ATQDgAZBUEaxOgwzlWNT")#to publish the plots online.
 #Lyapunov exponents
-folder_name="Sprott_system_B/"
 folder_name="Kot/"
-folder_name="Rossler/"
 folder_name="Lorenz/"
 folder_name="Hastings_Powell/"
-path1=file.path("C:/Users/sherl/Documents/Chaos paper/Copasi",folder_name)
+path1=file.path("insert file path to your COPASI results",folder_name)
 setwd(path1)
 
-filename="optimization_genetic_200_repeat.txt"
-filename_simulated="Optimization_simulated_annealing_repeat_2params_1.txt"
+filename="insert name of result .txt file generated from genetic algorithm in COPASI"
+filename_simulated="insert name of .txt file generated from simulated annealing algorithm in COPASI"
 
 data2=read.delim(file=filename,sep = "",header=FALSE) #header=TRUE in the repeat file
 data2_simulated=read.delim(file=filename_simulated,sep = "",header=FALSE) 
@@ -26,27 +24,18 @@ data2_simulated=read.delim(file=filename_simulated,sep = "",header=FALSE)
 #in which they were inputed into Copasi's optimization search.
 data2=data2[,-c(1,3,ncol(data2)-1)]
 data2_simulated=data2_simulated[,-c(1,3,ncol(data2_simulated)-1)]
-#parameters=c("eps","omega","x0","y0","z0")#Kot
-#parameters=c("eps","omega")#Kot
+#Use the parameters for the relevant system
+parameters=c("eps","omega","x0","y0","z0")#Kot
 parameters=c("r","b")#Lorenz
-#parameters=c("a1","a2","a3","a4","a5")#Sprott_system_B
-#parameters=c("c","b") #Rossler system
-#parameters=c("b1","b2","x0","y0","z0") #Hastings_Powell
-#parameters=c("b1","b2") #Hastings_Powell
+parameters=c("b1","b2","x0","y0","z0") #Hastings_Powell
 colnames(data2)=c("Lyapunov_exponent",parameters,"Time taken")
 colnames(data2_simulated)=c("Lyapunov_exponent",parameters,"Time taken")
-#keep only the lyapunov exponent which is positive
-#data2=data2[which(data2$Lyapunov_exponent>0),]
 
-#differences=data2[,2:(ncol(data2)-1)]-data2_simulated[1:nrow(data2),2:(ncol(data2_simulated)-1)] 
-#write.csv(differences,paste(gsub('/','_',folder_name),"Diff between genetic and simulated annealing.csv",""))
-
-#Comparison plot b/w GA and SA
+#Comparison plot b/w Genetic algorithm and simulated annealing
 data_combined=cbind.data.frame(data2_simulated[,2:3],
                                "algorithm" =c(rep("simulated_annealing",nrow(data2_simulated))))
 data_combined=rbind.data.frame(data_combined,cbind.data.frame(data2[1:nrow(data2_simulated),2:3],
                                       "algorithm" =   c(rep("genetic_algorithm",nrow(data2_simulated)))))
-system_name="Rossler"
 system_name="Kot"
 system_name="Lorenz"
 system_name="Hastings_Powell"
@@ -68,8 +57,7 @@ system_number=1 #if it is Hastings_Powell
 system_number=2 #if it is Kot
 path1=file.path("C:/Users/sherl/Documents/Chaos paper/Copasi",folder_name)
 setwd(path1)
-filename="b1_b2_lyapunov_4.txt"
-filename="eps_omega_lyapunov_6.txt"
+filename="name of text file containing the results from Lyapunov exponent calculation and 2 chosen parameters"
 data_surface=read.delim(file=filename,sep = "",header=TRUE) #header=TRUE in the repeat file
 colnames(data_surface)[1]="Lyapunov_exponent"
 lyap_exp=matrix(data_surface$Lyapunov_exponent,nrow=100,ncol=100)
@@ -80,8 +68,8 @@ if(system_number==1){
       xaxis = list(nticks = 10,title="b1"),
       yaxis=list(nticks=10,title="b2"),
       zaxis = list(nticks = 10,title="Lyapunov")))
-  system_name="Hastings_Powell"
-  htmlwidgets::saveWidget(as_widget(p),paste(system_name,"_surface_plot_4.html",sep=""))
+  system_name="Hastings_Powell" 
+  htmlwidgets::saveWidget(as_widget(p),paste(system_name,"_surface_plot.html",sep=""))
 }else if(system_number==2){
   p=plot_ly(x = unique(data_surface$eps), y = unique(data_surface$omega), z=lyap_exp)%>% add_surface()
   p=p%>%layout(
@@ -89,8 +77,8 @@ if(system_number==1){
       xaxis = list(nticks = 10,title="eps"),
       yaxis=list(nticks=10,title="omega"),
       zaxis = list(nticks = 5,title="Lyapunov")))
-  system_name="Kot"
-  htmlwidgets::saveWidget(as_widget(p),paste(system_name,"_surface_plot_6.html",sep=""))
+  system_name="Kot" 
+  htmlwidgets::saveWidget(as_widget(p),paste(system_name,"_surface_plot.html",sep=""))
 }
 
 
@@ -99,6 +87,8 @@ if(system_number==1){
 
 #parallel coordinates plot
 options(viewer = NULL)
+
+#constraint range is a user-defined range of the parameters you wish to see. 
 #Kot system
 Lyapunov_range=c((min(data2$Lyapunov_exponent)-1),(max(data2$Lyapunov_exponent)+1))
 p=data2%>%plot_ly(type = 'parcoords',
@@ -131,38 +121,8 @@ p=data2%>%plot_ly(type = 'parcoords',
                          label = 'ln(r)', values = ~log(r)),
                     list(range = c(2.55,2.75),
                          label = 'b', values = ~b)))
-#Rossler system
-Lyapunov_range=c((min(data2$Lyapunov_exponent)-1),(max(data2$Lyapunov_exponent)+1))
-p=data2%>%plot_ly(type = 'parcoords',
-                  line = list(color = ~Lyapunov_exponent),
-                  dimensions = list(
-                    list(range = Lyapunov_range,
-                         label = 'Lyapunov_exponent', values = ~Lyapunov_exponent),
-                    list(range = c(1,16),
-                         constraintrange = c(10,16),
-                         label = 'c', values = ~c),
-                    list(range = c(0,1),
-                         label = 'b', values = ~b)))
 
-#for Sprott system B
-a1a2a4_range=c(-6,6)
-Lyapunov_range=c((min(data2$Lyapunov_exponent)-1),(max(data2$Lyapunov_exponent)+1))
-p=data2%>%plot_ly(type = 'parcoords',
-                  line = list(color = ~Lyapunov_exponent),
-                  dimensions = list(
-                    list(range = Lyapunov_range,
-                         label = 'Lyapunov_exponent', values = ~Lyapunov_exponent),
-                    list(range = a1a2a4_range,
-                         constraintrange = c(-5,5),
-                         label = 'a1', values = ~a1),
-                    list(range = a1a2a4_range,
-                         label = 'a2', values = ~a2),
-                    list(range = c(-5,1),
-                         label = 'a3', values = ~a3),
-                    list(range = a1a2a4_range,
-                         label = 'a4', values = ~a4),
-                    list(range = c(-5,1),
-                         label = 'a5', values = ~a5)))
+
 #Hastings_Powell system
 Lyapunov_range=c((min(data2$Lyapunov_exponent)-1),(max(data2$Lyapunov_exponent)+1))
 p=data2%>%plot_ly(type = 'parcoords',
@@ -184,16 +144,13 @@ p=data2%>%plot_ly(type = 'parcoords',
 
 
 print(p)
-filename1="Parallel_Kot_genetic_2000"
-filename1="Parallel_Kot_genetic_20000"
+filename1="insert desired filename"
 api_create(p,filename = filename1)
 
 
 #To save the plot as a web page
-system_name="Rossler"
 system_name="Kot"
 system_name="Lorenz"
 system_name="Hastings_Powell"
-method_name="genetic_200"
-method_name="levenberg"
+method_name="insert optimization algorithm name"
 htmlwidgets::saveWidget(as_widget(p),paste0("Parallel_",system_name,"_",method_name,".html"))
